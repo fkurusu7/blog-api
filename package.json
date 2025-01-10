@@ -1,0 +1,14 @@
+{
+  "name": "blog-api",
+  "version": "1.0.0",
+  "description": "Backend part of Blog App",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "blog"
+  ],
+  "author": "fer cruz",
+  "license": "ISC"
+}
