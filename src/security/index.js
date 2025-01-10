@@ -4,7 +4,14 @@ import cors from "cors";
 
 const configSecurity = (appServer) => {
   // Helmet configuration
-  appServer.use(helmet());
+  if (process.env.NODE_ENV === "development") {
+    helmet({
+      contentSecurityPolicy: false, // Disable CSP in development
+      hsts: false, // Disable HSTS in development
+    });
+  } else {
+    appServer.use(helmet());
+  }
 
   // Rate Limiting
   const limiter = rateLimit({
