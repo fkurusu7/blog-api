@@ -64,7 +64,7 @@ export const logger = {
         ? chalk.yellow
         : status >= 300
         ? chalk.cyan
-        : chalk.green;
+        : chalk.green; // success
 
     const requestId = req.id || "-"; // Assuming you're using express-request-id
     const responseTime = tokens["response-time"](req, res);

@@ -1,0 +1,19 @@
+import { z } from "zod";
+
+export const signupSchema = z.object({
+  fullname: z
+    .string()
+    .regex(/^[a-zA-Z\s]*$/, "Fullname can only contain letters and spaces")
+    .min(3, "Fullname must be at least 3 characters")
+    .max(30, "Fullname cannot exceed 30 characters"),
+
+  email: z.string().email("Invalid email format").toLowerCase(),
+
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+    ),
+});

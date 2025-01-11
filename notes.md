@@ -23,6 +23,8 @@
   └── package.json
 ```
 
+### Server status
+
 1. Install Express, DotEnv, Mongoose, Cors dependencies and chalk & morgan (logs) and nodemon as dev dependencies
 
 ```zsh
@@ -31,10 +33,46 @@
 ```
 
 2. Set up Server --> create variables (.env file) like PORT, other configs...
-3. Add Custom Logger with chalk and
+3. Add Custom Logger with Chalk and Morgan
 4. Error handling
 
-npm install bcryptjs cors dotenv express express-rate-limit helmet joi jsonwebtoken morgan winston
+### Authentication
+
+1. Install mongoose, bcryptjs, jsonwebtoken
+
+```zsh
+  $ npm i mongoose
+```
+
+2. Add user schema and model
+3. Add routes for signup, signin, and signout (the cookie will be added to the response) in routes/routes.js
+4. Connect to DB, mongodb cloud
+5. Add Controller functions to sign up, in, and out.
+6. Add validations into a new file (manual or with a library) , if library install zod:
+
+```zsh
+  $ npm i zod
+```
+
+7. Add monitoring (timeout) for the entire request
+
+8. Once validations passed, save data to DB, before that encrypt the password with bcriptjs
+
+```zsh
+  $ npm i bcryptjs
+```
+
+9.  .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+
+npm install joi jsonwebtoken
 
 npm install --save-dev @types/bcrypt @types/cors @types/express @types/jsonwebtoken @types/morgan @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-prettier nodemon prettier ts-node typescript
 

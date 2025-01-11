@@ -1,3 +1,4 @@
+console.clear();
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
@@ -5,6 +6,11 @@ import express from "express";
 import configSecurity from "./src/security/index.js";
 import errorHandler, { notFound } from "./src/utils/errorHandler.js";
 import { logger } from "./src/utils/logger.js";
+import routes from "./src/routes/index.route.js";
+import connectDB from "./src/config/database.js";
+
+// initialize DB Connection
+connectDB();
 
 const AppServer = express();
 
@@ -18,9 +24,8 @@ AppServer.use(logger.requestLogger);
 // Handle favicon.ico requests
 AppServer.get("/favicon.ico", (req, res) => res.status(204).end());
 
-AppServer.get("/test", (req, res) =>
-  res.status(200).json({ message: "It works!" })
-);
+// ROUTES
+AppServer.use(routes);
 
 // ******************************************
 // Handle Errors ==> Error Middleware
