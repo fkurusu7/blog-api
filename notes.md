@@ -45,7 +45,7 @@
 ```
 
 2. Add user schema and model
-3. Add routes for signup, signin, and signout (the cookie will be added to the response) in routes/routes.js
+3. Add route for signup (the cookie will be added to the response) in routes/routes.js
 4. Connect to DB, mongodb cloud
 5. Add Controller functions to sign up, in, and out.
 6. Add validations into a new file (manual or with a library) , if library install zod:
@@ -62,8 +62,18 @@
   $ npm i bcryptjs
 ```
 
-9.  .
-    .
+9.  Add route for signin
+10. Validate email and password fields only not empty, create zod schema
+11. Find user by email, if user not found or password is incorrect return message "Invalid Credentials"
+12. validate password with bcryptjs.compareSync, in case of error, return step 11 error message
+13. Generate access token with jsonwebtoken jwt.sign with the user.\_id and JWT Secret keyphrase
+
+```zsh
+  $ npm i jsonwebtoken
+```
+
+14. Return response with cookie with accesstoken
+
     .
     .
     .

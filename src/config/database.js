@@ -6,7 +6,7 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_DB_CONNECTION, {
       autoIndex: true,
     });
-    success("MongoDB connecttion was success!");
+    success("MongoDB connecttion was successful!");
 
     // Connection States
     mongoose.connection.on("connected", () => info("Mongoose connected to DB"));

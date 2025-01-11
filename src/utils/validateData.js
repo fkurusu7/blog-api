@@ -17,3 +17,8 @@ export const signupSchema = z.object({
       "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
     ),
 });
+
+export const signinSchema = z.object({
+  email: z.string().email("Invalid email format").toLowerCase(),
+  password: z.string().min(8),
+});

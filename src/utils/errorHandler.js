@@ -6,7 +6,17 @@ export const createError = (statusCode, message) => {
   return error;
 };
 
-export const notFound = (req, res, next) => next(createError(404, "Not Found"));
+export const notFound = (req, res, next) =>
+  next(createError(404, "Path Not Found"));
+
+// Fields Validation handleError
+export const handleZodError = (error, next) => {
+  const errorMessage = error.errors.map((e) => ({
+    field: e.path.join("."),
+    message: e.message,
+  }));
+  return next(createError(400, JSON.stringify(errorMessage)));
+};
 
 const errorHandler = (error, req, res, next) => {
   const statusCode = error.statusCode || 500;
