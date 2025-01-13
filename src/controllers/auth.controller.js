@@ -23,10 +23,13 @@ const generateUsername = async (email) => {
 const formatUserResponse = (user) => {
   return {
     success: true,
-    username: user.personal_info.username,
-    email: user.personal_info.email,
-    profileImg: user.personal_info.profile_img,
-    createdAt: user.created_at,
+    message: "",
+    data: {
+      username: user.personal_info.username,
+      email: user.personal_info.email,
+      profileImg: user.personal_info.profile_img,
+      createdAt: user.created_at,
+    },
   };
 };
 
