@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../models/user.model.js";
 import { createError, handleZodError } from "../utils/errorHandler.js";
-import { signinSchema, signupSchema } from "../utils/validateData.js";
+import { signinSchema, signupSchema } from "../security/validateData.js";
 import { info } from "../utils/logger.js";
 import { setupRequestTimeout } from "../utils/helper.js";
 
