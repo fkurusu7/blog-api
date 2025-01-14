@@ -3,9 +3,12 @@ import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import User from "../models/user.model.js";
-import { createError, handleZodError } from "../utils/errorHandler.js";
+import errorHandler, {
+  createError,
+  handleZodError,
+} from "../utils/errorHandler.js";
 import { signinSchema, signupSchema } from "../security/validateData.js";
-import { info } from "../utils/logger.js";
+import { error, info } from "../utils/logger.js";
 import { setupRequestTimeout } from "../utils/helper.js";
 
 const generateUsername = async (email) => {
@@ -20,10 +23,10 @@ const generateUsername = async (email) => {
   return `${username}-${uniqueSuffix}`;
 };
 
-const formatUserResponse = (user) => {
+const formatUserResponse = (user, message) => {
   return {
     success: true,
-    message: "",
+    message,
     data: {
       username: user.personal_info.username,
       email: user.personal_info.email,
@@ -122,5 +125,14 @@ export const signin = async (req, res, next) => {
     } else {
       return next(error);
     }
+  }
+};
+
+export const signout = (req, res, next) => {
+  try {
+    return res.clearCookie(process.env.USER_COOKIE).sendStatus(204);
+  } catch (err) {
+    error("Signing out error", err);
+    next(err);
   }
 };
