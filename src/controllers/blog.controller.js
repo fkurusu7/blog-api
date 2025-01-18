@@ -4,10 +4,12 @@ import { createError, handleZodError } from "../utils/errorHandler.js";
 import { setupRequestTimeout } from "../utils/helper.js";
 import { info, warn } from "../utils/logger.js";
 import Post from "../models/post.model.js";
+import { generateSlug } from "../utils/slugify.js";
+import Tag from "../models/tag.model.js";
 
 const formatResponse = (success, data, message) => ({
   success,
-  data,
+  data: { title: data.title },
   message,
 });
 
@@ -27,13 +29,36 @@ export const create = async (req, res, next) => {
       `${userId}, ${title}, ${description}, ${banner}, ${tags}, ${content}, ${draft}`
     );
     // warn(await Post.collection.getIndexes());
-    // API call
+    // Save data to DB
+
+    // Get tags, look if they already exist in tag table, if exist save it, if not just... ignore it.
+    const processedTags = tags.map((tag) => tag.toLowerCase().trim());
+    const uniqueTags = [...new Set(processedTags)];
+
+    // Save tags in bulk
+    const tagOperations = uniqueTags.map((tagName) => ({
+      updateOne: {
+        filter: {
+          name: tagName,
+        },
+        update: {
+          name: tagName,
+          userId,
+          slug: generateSlug(tagName),
+        },
+        upsert: true,
+      },
+    }));
+    await Tag.bulkWrite(tagOperations);
+    const tagDocs = await Tag.find({ name: { $in: uniqueTags } });
+    const tagIds = tagDocs.map((tag) => tag._id);
+
     const post = new Post({
       userId,
       title,
       description,
       banner,
-      tags,
+      tags: tagIds,
       content,
       draft,
     });

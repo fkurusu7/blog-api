@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import User from "./user.model.js";
 import { generateSlug } from "../utils/slugify.js";
+import Tag from "./tag.model.js";
 
 const postSchema = mongoose.Schema(
   {
@@ -35,9 +36,10 @@ const postSchema = mongoose.Schema(
       default: "",
     },
     tags: {
-      type: [],
+      type: [Schema.Types.ObjectId],
       required: true,
       default: [],
+      ref: Tag,
     },
     total_reads: {
       type: Number,
