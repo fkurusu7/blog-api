@@ -1,12 +1,13 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import User from "./user.model.js";
 
 const postSchema = mongoose.Schema(
   {
-    // userId: {
-    //   type: Schema.Types.ObjectId,
-    //   required: true,
-    //   ref: User,
-    // },
+    userId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: User,
+    },
     slug: {
       type: String,
       lowercase: true,
@@ -30,7 +31,7 @@ const postSchema = mongoose.Schema(
     content: {
       type: String,
       required: true,
-      default: [],
+      default: "",
     },
     tags: {
       type: [],
@@ -62,7 +63,7 @@ const postSchema = mongoose.Schema(
 );
 
 // Create compound indexes for better query performance
-// postSchema.index({ userId: 1, createdAt: -1 });
+postSchema.index({ userId: 1, createdAt: -1 });
 postSchema.index({ title: 1 }, { unique: true });
 const Post = mongoose.model("Post", postSchema);
 export default Post;

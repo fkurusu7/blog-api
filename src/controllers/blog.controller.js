@@ -20,16 +20,23 @@ export const create = async (req, res, next) => {
     const { title, description, banner, tags, content, draft } =
       createPostSchema.parse(req.body);
 
-    // Valid? save Post (Create Mongo model) object
-    info(` ${title}, ${description}, ${banner}, ${tags}, ${content}, ${draft}`);
-
     // Get userId from req
+    const userId = req.user.id;
+    // Valid? save Post (Create Mongo model) object
+    info(
+      `${userId}, ${title}, ${description}, ${banner}, ${tags}, ${content}, ${draft}`
+    );
     // warn(await Post.collection.getIndexes());
     // API call
-    const post = new Post({ title, description, banner, tags, content, draft });
-    // After creating the post object but before saving
-    console.log("Original title:", title);
-    console.log("Post object title:", post.title);
+    const post = new Post({
+      userId,
+      title,
+      description,
+      banner,
+      tags,
+      content,
+      draft,
+    });
     const savedPost = await post.save();
 
     // Log/Monitor Post creation performance
