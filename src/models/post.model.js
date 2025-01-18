@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import User from "./user.model.js";
+import { generateSlug } from "../utils/slugify.js";
 
 const postSchema = mongoose.Schema(
   {
@@ -65,24 +66,21 @@ const postSchema = mongoose.Schema(
 // Create compound indexes for better query performance
 postSchema.index({ userId: 1, createdAt: -1 });
 postSchema.index({ title: 1 }, { unique: true });
-const Post = mongoose.model("Post", postSchema);
-export default Post;
-
-// postSchema.index({ slug: 1 }, { unique: true });
+postSchema.index({ slug: 1 }, { unique: true });
 // postSchema.index({ tags: 1, createdAt: -1 });
 
-// poWhen updating posts, maintain history
-// postSchema.pre("save", function (next) {
-//   if (this.isModified("content")) {
-//     this.history.push({
-//       content: this.content,
-//       updatedAt: new Date(),
-//       version: this.version,
-//     });
-//     this.version += 1;
-//   }
-//   next();
-// });
+// When updating posts, maintain history
+postSchema.pre("save", function (next) {
+  if (this.isModified("content")) {
+    this.history.push({
+      content: this.content,
+      updatedAt: new Date(),
+      version: this.version,
+    });
+    this.version += 1;
+  }
+  next();
+});
 
 // // Middleware to update tag postCount when a post is saved or removed
 // postSchema.pre("save", async function (next) {
@@ -122,32 +120,33 @@ export default Post;
 //   next();
 // });
 
-// // check slug uniqueness
-// postSchema.methods.generateUniqueSlug = async function () {
-//   let slug = this.slug;
-//   let counter = 1;
+// Update the pre-save middleware to use the unique slug generator
+// check slug uniqueness
+postSchema.methods.generateUniqueSlug = async function () {
+  let slug = this.slug;
+  let counter = 1;
 
-//   while (true) {
-//     const existingPost = await this.constructor.findOne({
-//       slug,
-//       _id: { $ne: this._id }, // Exclude current post when updating
-//     });
+  while (true) {
+    const existingPost = await this.constructor.findOne({
+      slug,
+      _id: { $ne: this._id }, // exclude current post when updating
+    });
+    if (!existingPost) break;
 
-//     if (!existingPost) break;
+    // if slug exists, append counter and try again
+    slug = `${this.slug}-${counter}`;
+  }
 
-//     // If slug exists, append counter and try again
-//     slug = `${this.slug}-${counter}`;
-//     counter++;
-//   }
+  this.slug = slug;
+};
 
-//   this.slug = slug;
-// };
+postSchema.pre("save", async function (next) {
+  if (this.isModified("title")) {
+    this.slug = generateSlug(this.title);
+    await this.generateUniqueSlug();
+  }
+  next();
+});
 
-// // Update the pre-save middleware to use the unique slug generator
-// postSchema.pre("save", async function (next) {
-//   if (this.isModified("title")) {
-//     this.slug = generateSlug(this.title);
-//     await this.generateUniqueSlug();
-//   }
-//   next();
-// });
+const Post = mongoose.model("Post", postSchema);
+export default Post;
