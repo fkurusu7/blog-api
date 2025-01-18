@@ -1,7 +1,9 @@
 console.clear();
 import dotenv from "dotenv";
 dotenv.config();
+
 import express from "express";
+import cookieParser from "cookie-parser";
 
 import configSecurity from "./src/security/index.js";
 import errorHandler, { notFound } from "./src/utils/errorHandler.js";
@@ -17,6 +19,7 @@ const AppServer = express();
 // helmet, rate limit and cors middlewares
 configSecurity(AppServer);
 AppServer.use(express.json());
+AppServer.use(cookieParser());
 // Response capture logger middleware
 AppServer.use(logger.responseCapture);
 // Request capture logger middleware

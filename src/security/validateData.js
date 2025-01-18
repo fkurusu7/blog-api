@@ -23,6 +23,7 @@ export const signinSchema = z.object({
   password: z.string().min(8),
 });
 
+// add userId
 export const createPostSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
