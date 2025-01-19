@@ -9,9 +9,92 @@ import Tag from "../models/tag.model.js";
 
 const formatResponse = (success, data, message) => ({
   success,
-  data: { title: data.title },
+  data,
   message,
 });
+
+/**
+ * Dynamic function to get Post(s)
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * Returns an Array of Posts
+ * Examples:
+ * /api/blog/getPosts?userId=id
+ * /api/blog/getPosts?searchTerm=javascript <== title, desc, content
+ * /api/blog/getPosts?tag=javascript
+ * path QUERIES:
+ * searchTerm | slug | userId | startIndex | limit | order | latest
+ */
+export const getPosts = async (req, res, next) => {
+  try {
+    // Query Modifiers:
+    const startIndex = parseInt(req.query.startIndex) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const sortDirection = req.query.order === "asc" ? 1 : -1;
+    const latest = req.query.latest;
+
+    // Generate Post(s) Find Query
+    const posts = await Post.find({
+      // draft: false, TODO: remove once the UI create/show posts
+      // by postId
+      ...(req.query.postId && { _id: req.query.postId }),
+      // by userId
+      ...(req.query.userId && { userId: req.query.userId }),
+      // by slug
+      ...(req.query.slug && { slug: req.query.slug }),
+      // by search term
+      ...(req.query.searchTerm && {
+        $or: [
+          { title: { $regex: `.*${req.query.searchTerm}.*`, $options: "i" } },
+          {
+            description: {
+              $regex: `.*${req.query.searchTerm}.*`,
+              $options: "i",
+            },
+          },
+          {
+            content: { $regex: `.*${req.query.searchTerm}.*`, $options: "i" },
+          },
+        ],
+      }),
+    })
+      .populate(
+        "userId",
+        "personal_info.username personal_info.profile_img -_id"
+      )
+      .populate("tags", "name slug -_id")
+      .sort({ createdAt: latest ? -1 : sortDirection })
+      .select(
+        `slug title description createdAt ${
+          req.query.slug && " content banner"
+        } -_id`
+      )
+      .skip(latest ? 0 : startIndex) // if latest, don't skip
+      .limit(limit);
+
+    posts.forEach((post) => {
+      info(`==> POSTS: ${JSON.stringify(post)}`);
+    });
+
+    // Return response 200
+    return res
+      .status(200)
+      .json(
+        formatResponse(
+          true,
+          posts,
+          `${
+            posts.length === 0
+              ? "No post(s) found"
+              : "Posts fetched successfully"
+          }`
+        )
+      );
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const create = async (req, res, next) => {
   try {
@@ -88,7 +171,5 @@ export const create = async (req, res, next) => {
     } else {
       next(error);
     }
-    // error 11000 Post already exists by name
-    // catch any error
   }
 };
