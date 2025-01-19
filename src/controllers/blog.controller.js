@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 import { createPostSchema } from "../security/validateData.js";
 import { createError, handleZodError } from "../utils/errorHandler.js";
 import { setupRequestTimeout } from "../utils/helper.js";
@@ -171,5 +174,43 @@ export const create = async (req, res, next) => {
     } else {
       next(error);
     }
+  }
+};
+
+// Get banner image URL from AWS S3
+const getS3Client = () => {
+  return new S3Client({
+    region: "us-east-2",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  });
+};
+
+const generateAWSImageUploadURL = async () => {
+  const s3Client = getS3Client();
+  const date = new Date();
+  const imageName = `${crypto.randomUUID().slice(0, 8)}-${date.getTime()}.jpeg`;
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: imageName,
+    ContentType: "image/jpeg",
+  });
+
+  const urlUploadImage = await getSignedUrl(s3Client, command, {
+    Expires: 1000,
+  });
+
+  return urlUploadImage;
+};
+
+export const getImageUploadUrl = async (req, res, next) => {
+  try {
+    const urlUploadImage = await generateAWSImageUploadURL();
+    return res.status(200).json({ urlUploadImage });
+  } catch (error) {
+    next(error);
   }
 };

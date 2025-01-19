@@ -1,7 +1,11 @@
 import express from "express";
 const router = express.Router();
 
-import { create, getPosts } from "../controllers/blog.controller.js";
+import {
+  create,
+  getImageUploadUrl,
+  getPosts,
+} from "../controllers/blog.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 // getPosts, create, getImageUploadUrl AWS-S3, fetchImageUrl
 
@@ -9,5 +13,7 @@ import { verifyToken } from "../middleware/verifyToken.js";
 router.post("/create", verifyToken, create);
 // 2. getPosts
 router.get("/getPosts", getPosts);
+// get AWS S3 Image Upload URL
+router.get("/getImageUploadUrl", getImageUploadUrl);
 
 export default router;
