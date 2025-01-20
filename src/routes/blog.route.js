@@ -5,15 +5,18 @@ import {
   create,
   getImageUploadUrl,
   getPosts,
+  getTags,
 } from "../controllers/blog.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 // getPosts, create, getImageUploadUrl AWS-S3, fetchImageUrl
 
-// 1. create a post
+// create a post
 router.post("/create", verifyToken, create);
-// 2. getPosts
+// getPosts
 router.get("/getPosts", getPosts);
 // get AWS S3 Image Upload URL
 router.get("/getImageUploadUrl", getImageUploadUrl);
+// get Tags
+router.get("/getTags", getTags);
 
 export default router;

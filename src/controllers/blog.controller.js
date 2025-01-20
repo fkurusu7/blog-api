@@ -31,11 +31,23 @@ const formatResponse = (success, data, message) => ({
  */
 export const getPosts = async (req, res, next) => {
   try {
+    for (const property in req.query) {
+      console.log(`${property}: ${req.query[property]}`);
+    }
     // Query Modifiers:
     const startIndex = parseInt(req.query.startIndex) || 0;
     const limit = parseInt(req.query.limit) || 10;
     const sortDirection = req.query.order === "asc" ? 1 : -1;
     const latest = req.query.latest;
+
+    // If we have a tag slug, first find the tag to get its ID
+    let tagId;
+    if (req.query.tag) {
+      const tag = await Tag.findOne({ slug: req.query.tag });
+      if (tag) {
+        tagId = tag._id;
+      }
+    }
 
     // Generate Post(s) Find Query
     const posts = await Post.find({
@@ -46,6 +58,8 @@ export const getPosts = async (req, res, next) => {
       ...(req.query.userId && { userId: req.query.userId }),
       // by slug
       ...(req.query.slug && { slug: req.query.slug }),
+      // by Tag
+      ...(tagId && { tags: tagId }),
       // by search term
       ...(req.query.searchTerm && {
         $or: [
@@ -210,6 +224,18 @@ export const getImageUploadUrl = async (req, res, next) => {
   try {
     const urlUploadImage = await generateAWSImageUploadURL();
     return res.status(200).json({ urlUploadImage });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTags = async (req, res, next) => {
+  try {
+    const tags = await Tag.find({}).select("name slug -_id");
+
+    return res
+      .status(200)
+      .json(formatResponse(true, tags, "Tags fetched successfully"));
   } catch (error) {
     next(error);
   }
