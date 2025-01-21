@@ -83,7 +83,7 @@ export const getPosts = async (req, res, next) => {
       .populate("tags", "name slug -_id")
       .sort({ createdAt: latest ? -1 : sortDirection })
       .select(
-        `slug title description createdAt ${
+        `slug title banner description createdAt draft ${
           req.query.slug && " content banner"
         } -_id`
       )
