@@ -31,9 +31,9 @@ const formatResponse = (success, data, message) => ({
  */
 export const getPosts = async (req, res, next) => {
   try {
-    for (const property in req.query) {
-      console.log(`${property}: ${req.query[property]}`);
-    }
+    // for (const property in req.query) {
+    //   console.log(`${property}: ${req.query[property]}`);
+    // }
     // Query Modifiers:
     const startIndex = parseInt(req.query.startIndex) || 0;
     const limit = parseInt(req.query.limit) || 10;
@@ -90,9 +90,9 @@ export const getPosts = async (req, res, next) => {
       .skip(latest ? 0 : startIndex) // if latest, don't skip
       .limit(limit);
 
-    posts.forEach((post) => {
-      info(`==> POSTS: ${JSON.stringify(post)}`);
-    });
+    // posts.forEach((post) => {
+    //   info(`==> POSTS: ${JSON.stringify(post)}`);
+    // });
 
     // Return response 200
     return res
@@ -231,7 +231,8 @@ export const getImageUploadUrl = async (req, res, next) => {
 
 export const getTags = async (req, res, next) => {
   try {
-    const tags = await Tag.find({}).select("name slug -_id");
+    const limit = parseInt(req.query.limit) || Number.MAX_SAFE_INTEGER;
+    const tags = await Tag.find({}).select("name slug -_id").limit(limit);
 
     return res
       .status(200)
