@@ -24,6 +24,7 @@ const formatResponse = (success, data, message) => ({
  * Returns an Array of Posts
  * Examples:
  * /api/blog/getPosts?userId=id
+ * /api/blog/getPosts?slug=slug-name
  * /api/blog/getPosts?searchTerm=javascript <== title, desc, content
  * /api/blog/getPosts?tag=javascript
  * path QUERIES:
