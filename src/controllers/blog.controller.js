@@ -35,6 +35,7 @@ export const getPosts = async (req, res, next) => {
     // for (const property in req.query) {
     //   console.log(`${property}: ${req.query[property]}`);
     // }
+
     // Query Modifiers:
     const startIndex = parseInt(req.query.startIndex) || 0;
     const limit = parseInt(req.query.limit) || 10;
@@ -189,6 +190,16 @@ export const create = async (req, res, next) => {
     } else {
       next(error);
     }
+  }
+};
+
+export const remove = async (req, res, next) => {
+  try {
+    const reqSlug = req.query.slug;
+    await Post.deleteOne({ slug: reqSlug });
+    return res.status(204).end();
+  } catch (error) {
+    next(error);
   }
 };
 

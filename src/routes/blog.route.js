@@ -3,8 +3,9 @@ const router = express.Router();
 
 import {
   create,
-  getImageUploadUrl,
   getPosts,
+  remove,
+  getImageUploadUrl,
   getTags,
 } from "../controllers/blog.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -14,6 +15,9 @@ import { verifyToken } from "../middleware/verifyToken.js";
 router.post("/create", verifyToken, create);
 // getPosts
 router.get("/getPosts", getPosts);
+// remove
+router.delete("/remove", remove);
+
 // get AWS S3 Image Upload URL
 router.get("/getImageUploadUrl", getImageUploadUrl);
 // get Tags
