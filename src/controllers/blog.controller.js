@@ -193,6 +193,8 @@ export const create = async (req, res, next) => {
   }
 };
 
+export const update = async (req, res, next) => {};
+
 export const remove = async (req, res, next) => {
   try {
     const reqSlug = req.query.slug;
