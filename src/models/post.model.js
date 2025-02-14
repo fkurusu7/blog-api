@@ -22,7 +22,7 @@ const postSchema = mongoose.Schema(
     },
     banner: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     description: {

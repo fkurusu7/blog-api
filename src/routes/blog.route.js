@@ -7,6 +7,7 @@ import {
   remove,
   getImageUploadUrl,
   getTags,
+  update,
 } from "../controllers/blog.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 // getPosts, create, getImageUploadUrl AWS-S3, fetchImageUrl
@@ -17,6 +18,8 @@ router.post("/create", verifyToken, create);
 router.get("/getPosts", getPosts);
 // remove
 router.delete("/remove", remove);
+// update
+router.put("/update/:slug", verifyToken, update);
 
 // get AWS S3 Image Upload URL
 router.get("/getImageUploadUrl", getImageUploadUrl);

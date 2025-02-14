@@ -5,7 +5,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { upsertPostSchema } from "../security/validateData.js";
 import { createError, handleZodError } from "../utils/errorHandler.js";
 import { setupRequestTimeout } from "../utils/helper.js";
-import { info, warn } from "../utils/logger.js";
+import { info } from "../utils/logger.js";
 import Post from "../models/post.model.js";
 import { generateSlug } from "../utils/slugify.js";
 import Tag from "../models/tag.model.js";
@@ -158,8 +158,10 @@ export const create = async (req, res, next) => {
     const start = performance.now();
     setupRequestTimeout(null, res, next);
     // Validate fields with Zod
-    const { title, description, banner, tags, content, draft } =
-      upsertPostSchema.parse(req.body);
+    const { title, description, tags, content, draft } = upsertPostSchema.parse(
+      req.body
+    );
+    const banner = req.body.banner || null;
 
     // Get userId from req
     const userId = req.user.id;
@@ -243,11 +245,12 @@ export const update = async (req, res, next) => {
       .partial()
       .parse(req.body);
 
-    // Logs fields
-    info(`${userId}, ${title}, ${description}, ${tags}, ${content}, ${draft}`);
-
     // Get userId from req
     const userId = req.user.id;
+    const banner = req.body.banner || null;
+
+    // Logs fields
+    info(`${userId}, ${draft}, ${title}, \n${banner}, ${tags}, \n${content}`);
 
     // Find post
     const existingPost = await Post.findOne({ slug });
@@ -269,17 +272,43 @@ export const update = async (req, res, next) => {
     const updateData = {
       ...(title && { title }),
       ...(description && { description }),
+      ...(banner && { banner }),
       ...(tags && { tags: tagIds }),
       ...(content && { content }),
       ...(typeof draft !== "undefined" && { draft }),
       updatedAt: new Date(),
     };
-    const updatedPost = await Post.findOneAndUpdate(
+    console.log(updateData);
+
+    const filterSlug = { slug };
+    const updatedPost = await Post.findOneAndUpdate(filterSlug, updateData, {
+      new: true,
+    });
 
     // clear monitoring
+    const duration = performance.now() - start;
+    info(
+      `Post update performance ${JSON.stringify({
+        duration,
+        userId,
+        slug,
+        tagsCount: tags?.length ?? existingPost.tags.length,
+      })}`
+    );
     res.setTimeout(0);
+
+    // return response
+    return res
+      .status(200)
+      .json(formatResponse(true, updatedPost, "Post updated successfully"));
   } catch (error) {
-    next(error);
+    if (error instanceof z.ZodError) {
+      return handleZodError(error, next);
+    } else if (error.code === 11000) {
+      return next(createError(409, "Post title already exists"));
+    } else {
+      next(error);
+    }
   }
 };
 
