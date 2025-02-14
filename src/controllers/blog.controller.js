@@ -2,7 +2,7 @@ import { z } from "zod";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import { createPostSchema } from "../security/validateData.js";
+import { upsertPostSchema } from "../security/validateData.js";
 import { createError, handleZodError } from "../utils/errorHandler.js";
 import { setupRequestTimeout } from "../utils/helper.js";
 import { info, warn } from "../utils/logger.js";
@@ -15,6 +15,43 @@ const formatResponse = (success, data, message) => ({
   data,
   message,
 });
+
+// Process tags and return tag IDs after upserting them in the database
+const processAndUpsertTags = async (tags, userId) => {
+  try {
+    // Skip processing if no tags provided
+    if (!tags || !tags.length) {
+      return [];
+    }
+
+    // Process tags: lowercase, trim, and remove duplicates
+    const processedTags = tags.map((tag) => tag.toLowerCase().trim());
+    const uniqueTags = [...new Set(processedTags)];
+
+    // Create bulk operations for tags
+    const tagOperations = uniqueTags.map((tagName) => ({
+      updateOne: {
+        filter: { name: tagName },
+        update: {
+          name: tagName,
+          userId,
+          slug: generateSlug(tagName),
+        },
+        upsert: true,
+      },
+    }));
+
+    // Perform bulk write operation
+    await Tag.bulkWrite(tagOperations);
+
+    // Fetch the tag documents and return their IDs
+    const tagDocs = await Tag.find({ name: { $in: uniqueTags } });
+    return tagDocs.map((tag) => tag._id);
+  } catch (error) {
+    error.message = `Error processing tags: ${error.message}`;
+    throw error;
+  }
+};
 
 /**
  * Dynamic function to get Post(s)
@@ -122,7 +159,7 @@ export const create = async (req, res, next) => {
     setupRequestTimeout(null, res, next);
     // Validate fields with Zod
     const { title, description, banner, tags, content, draft } =
-      createPostSchema.parse(req.body);
+      upsertPostSchema.parse(req.body);
 
     // Get userId from req
     const userId = req.user.id;
@@ -130,30 +167,29 @@ export const create = async (req, res, next) => {
     info(
       `${userId}, ${title}, ${description}, ${banner}, ${tags}, ${content}, ${draft}`
     );
-    // warn(await Post.collection.getIndexes());
-    // Save data to DB
 
     // Get tags, look if they already exist in tag table, if exist save it, if not just... ignore it.
-    const processedTags = tags.map((tag) => tag.toLowerCase().trim());
-    const uniqueTags = [...new Set(processedTags)];
+    // const processedTags = tags.map((tag) => tag.toLowerCase().trim());
+    // const uniqueTags = [...new Set(processedTags)];
 
-    // Save tags in bulk
-    const tagOperations = uniqueTags.map((tagName) => ({
-      updateOne: {
-        filter: {
-          name: tagName,
-        },
-        update: {
-          name: tagName,
-          userId,
-          slug: generateSlug(tagName),
-        },
-        upsert: true,
-      },
-    }));
-    await Tag.bulkWrite(tagOperations);
-    const tagDocs = await Tag.find({ name: { $in: uniqueTags } });
-    const tagIds = tagDocs.map((tag) => tag._id);
+    // // Save tags in bulk
+    // const tagOperations = uniqueTags.map((tagName) => ({
+    //   updateOne: {
+    //     filter: {
+    //       name: tagName,
+    //     },
+    //     update: {
+    //       name: tagName,
+    //       userId,
+    //       slug: generateSlug(tagName),
+    //     },
+    //     upsert: true,
+    //   },
+    // }));
+    // await Tag.bulkWrite(tagOperations);
+    // const tagDocs = await Tag.find({ name: { $in: uniqueTags } });
+    // const tagIds = tagDocs.map((tag) => tag._id);
+    const tagIds = await processAndUpsertTags(tags, userId);
 
     const post = new Post({
       userId,
@@ -190,6 +226,60 @@ export const create = async (req, res, next) => {
     } else {
       next(error);
     }
+  }
+};
+
+export const update = async (req, res, next) => {
+  try {
+    // Monitoring
+    const start = performance.now();
+    setupRequestTimeout(null, res, next);
+
+    // Get post slug(id) from req
+    const { slug } = req.params;
+
+    // Validate fields with Zod. Make fields optional for update using partial()
+    const { title, description, tags, content, draft } = upsertPostSchema
+      .partial()
+      .parse(req.body);
+
+    // Logs fields
+    info(`${userId}, ${title}, ${description}, ${tags}, ${content}, ${draft}`);
+
+    // Get userId from req
+    const userId = req.user.id;
+
+    // Find post
+    const existingPost = await Post.findOne({ slug });
+    if (!existingPost) {
+      return next(createError(404, "Post not found"));
+    }
+    // check ownership
+    if (existingPost.userId.toString() !== userId) {
+      return next(createError(403, "Not authorized to update this post"));
+    }
+
+    // Tag handling similar to create
+    let tagIds;
+    if (tags) {
+      tagIds = await processAndUpsertTags(tags, userId);
+    }
+    // Update post
+    // Build update object with only the provided fields
+    const updateData = {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(tags && { tags: tagIds }),
+      ...(content && { content }),
+      ...(typeof draft !== "undefined" && { draft }),
+      updatedAt: new Date(),
+    };
+    const updatedPost = await Post.findOneAndUpdate(
+
+    // clear monitoring
+    res.setTimeout(0);
+  } catch (error) {
+    next(error);
   }
 };
 
