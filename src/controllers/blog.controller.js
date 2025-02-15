@@ -337,7 +337,7 @@ export const remove = async (req, res, next) => {
   }
 };
 
-export const cleanupTagsOnPostDeletion = async (req, res) => {
+export const cleanupTagsOnPostDeletion = async (req, res, next) => {
   try {
     // Get tags from req.locals.tagsToDelete
     const tagsToDelete = res.locals.tagsToDelete;
@@ -349,7 +349,7 @@ export const cleanupTagsOnPostDeletion = async (req, res) => {
 
       if (postsWithTagId === 0) {
         // Delete tag if it's not use in any other posts
-        await Tag.findbyIdAndDelete(tagId);
+        await Tag.findByIdAndDelete(tagId);
         info(`Tag with ID ${tagId} deleted`);
       }
     }
