@@ -315,10 +315,48 @@ export const update = async (req, res, next) => {
 export const remove = async (req, res, next) => {
   try {
     const reqSlug = req.query.slug;
+    // Remove tags if they are not used by any other post
+    const postToDelete = await Post.findOne({ slug: reqSlug });
+    if (!postToDelete) {
+      return next(createError(404, "Post not found"));
+    }
+    // check ownership
+    if (postToDelete.userId.toString() !== req.user.id) {
+      return next(createError(403, "Not authorized to delete this post"));
+    }
+
+    // Store tags to delete if they are not used by any other post
+    res.locals.tagsToDelete = postToDelete.tags;
+
+    // Delete Post
     await Post.deleteOne({ slug: reqSlug });
-    return res.status(204).end();
+    // return res.status(204).end();
+    next();
   } catch (error) {
     next(error);
+  }
+};
+
+export const cleanupTagsOnPostDeletion = async (req, res) => {
+  try {
+    // Get tags from req.locals.tagsToDelete
+    const tagsToDelete = res.locals.tagsToDelete;
+
+    // Loop over tags and check if they are used by any other post
+    for (const tagId of tagsToDelete) {
+      // Count remaining posts for each tag
+      const postsWithTagId = await Post.countDocuments({ tags: tagId });
+
+      if (postsWithTagId === 0) {
+        // Delete tag if it's not use in any other posts
+        await Tag.findbyIdAndDelete(tagId);
+        info(`Tag with ID ${tagId} deleted`);
+      }
+    }
+
+    return res.status(204).end();
+  } catch (error) {
+    return next(createError(500, `Error cleaning up tags: ${error.message}`));
   }
 };
 
