@@ -73,11 +73,17 @@ postSchema.index({ slug: 1 }, { unique: true });
 
 // When updating posts, maintain history
 postSchema.pre("save", function (next) {
-  if (this.isModified("content")) {
+  if (this.isNew) {
     this.history.push({
       content: this.content,
       updatedAt: new Date(),
       version: this.version,
+    });
+  } else {
+    this.history.push({
+      content: this.content,
+      updatedAt: new Date(),
+      version: this.version + 1,
     });
     this.version += 1;
   }

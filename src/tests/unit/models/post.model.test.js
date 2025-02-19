@@ -116,12 +116,64 @@ describe("Post Model", () => {
       tags: tagIds,
     });
 
-    // Expect a duplication error when trying to save post2
+    // Assert -  Expect a duplication error when trying to save post2
     await expect(post2.save()).rejects.toThrow(/duplicate key error/);
   });
+
+  test("should update version and maintain history on content change", async () => {
+    // Arrange
+    const user = new User({
+      personal_info: {
+        fullname: "Test User",
+        email: "test@example.com",
+        password: "securePassword123!",
+        username: "testuser",
+      },
+    });
+    await user.save();
+
+    const tagDocs = await Promise.all(
+      ["test", "tdd"].map(async (tagName) => {
+        return await Tag.create({
+          name: tagName,
+          userId: user._id,
+          // slug: generateSlug(tagName)
+        });
+      })
+    );
+    const tagIds = tagDocs.map((tag) => tag._id);
+
+    // Act
+    // Create Posts
+    const post = new Post({
+      userId: user._id,
+      title: "Versioning!",
+      banner: "https://urltoimage.com/2z3x56cr7vtb8yo9",
+      description: "This is a Same Title",
+      content: "Original content",
+      tags: tagIds,
+    });
+    await post.save();
+
+    // Assert
+    // Initial version should be 1
+    expect(post.history.length).toBe(1);
+    expect(post.version).toBe(1);
+
+    // Update content
+    post.content = "Updated content";
+    await post.save();
+
+    // Version should be incremented
+    expect(post.version).toBe(2);
+    expect(post.history.length).toBe(2);
+
+    // History should contain previous version
+    expect(post.history[0].content).toBe("Original content");
+    expect(post.history[0].version).toBe(1);
+  });
+
   /*
-
-  test("should update version and maintain history on content change", async () => {});
-
-  test("should reject post creation without required fields", async () => {}); */
+  test("should reject post creation without required fields", async () => {}); 
+  */
 });
