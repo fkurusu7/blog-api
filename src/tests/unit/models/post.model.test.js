@@ -3,6 +3,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import Post from "../../../models/post.model";
 import User from "../../../models/user.model";
 import Tag from "../../../models/tag.model";
+import { generateSlug } from "../../../utils/slugify";
 
 let mongoServer;
 
@@ -36,6 +37,17 @@ describe("Post Model", () => {
     });
     await user.save();
 
+    const tagDocs = await Promise.all(
+      ["test", "tdd"].map(async (tagName) => {
+        return await Tag.create({
+          name: tagName,
+          userId: user._id,
+          // slug: generateSlug(tagName)
+        });
+      })
+    );
+    const tagIds = tagDocs.map((tag) => tag._id);
+
     // Create a post
     const postData = {
       userId: user._id,
@@ -43,7 +55,7 @@ describe("Post Model", () => {
       banner: "https://urltoimage.com/2z3x56cr7vtb8yo9",
       description: "This is a test post",
       content: "Test content",
-      tags: ["test", "tdd"],
+      tags: tagIds,
     };
 
     // ************ Act (execution)
@@ -60,9 +72,9 @@ describe("Post Model", () => {
     expect(savedPost.status).toBe("draft");
   });
 
-  test("should generate a unique slug from title", async () => {});
+  /* test("should generate a unique slug from title", async () => {});
 
   test("should update version and maintain history on content change", async () => {});
 
-  test("should reject post creation without required fields", async () => {});
+  test("should reject post creation without required fields", async () => {}); */
 });

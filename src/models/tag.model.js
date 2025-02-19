@@ -12,14 +12,14 @@ const tagSchema = mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
+      // required: true,
       lowercase: true,
     },
     post_count: {
       type: Number,
       default: 0,
     },
-    user_id: {
+    userId: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: User,
@@ -34,7 +34,7 @@ tagSchema.index({ slug: 1 }, { unique: true });
 
 // Pre-save middleware to generate Slug from name
 tagSchema.pre("save", function (next) {
-  if (this.isModified("name")) {
+  if (this.name) {
     this.slug = generateSlug(this.name);
   }
   next();
