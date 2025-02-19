@@ -3,24 +3,18 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import Post from "../../../models/post.model";
 import User from "../../../models/user.model";
 import Tag from "../../../models/tag.model";
-import { generateSlug } from "../../../utils/slugify";
-
-let mongoServer;
+import { clearDB, setupTestDB, teardownTestDB } from "../../tests_setup";
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  await mongoose.connect(mongoServer.getUri());
+  await setupTestDB();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  await mongoServer.stop();
+  await teardownTestDB();
 });
 
 beforeEach(async () => {
-  await Post.deleteMany({});
-  await Tag.deleteMany({});
-  await User.deleteMany({});
+  await clearDB();
 });
 
 describe("Post Model", () => {
