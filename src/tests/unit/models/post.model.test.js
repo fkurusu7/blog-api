@@ -72,7 +72,54 @@ describe("Post Model", () => {
     expect(savedPost.status).toBe("draft");
   });
 
-  /* test("should generate a unique slug from title", async () => {});
+  test("should generate a unique Post from title", async () => {
+    // Arrange
+    const user = new User({
+      personal_info: {
+        fullname: "Test User",
+        email: "test@example.com",
+        password: "securePassword123!",
+        username: "testuser",
+      },
+    });
+    await user.save();
+
+    const tagDocs = await Promise.all(
+      ["test", "tdd"].map(async (tagName) => {
+        return await Tag.create({
+          name: tagName,
+          userId: user._id,
+          // slug: generateSlug(tagName)
+        });
+      })
+    );
+    const tagIds = tagDocs.map((tag) => tag._id);
+
+    // Act
+    // Create Posts
+    const post1 = new Post({
+      userId: user._id,
+      title: "Same Title",
+      banner: "https://urltoimage.com/2z3x56cr7vtb8yo9",
+      description: "This is a Same Title",
+      content: "Test content",
+      tags: tagIds,
+    });
+    await post1.save();
+
+    const post2 = new Post({
+      userId: user._id,
+      title: "Same Title",
+      banner: "https://urltoimage.com/2z3x56cr7vtb8yo9",
+      description: "This is a test post",
+      content: "Test content",
+      tags: tagIds,
+    });
+
+    // Expect a duplication error when trying to save post2
+    await expect(post2.save()).rejects.toThrow(/duplicate key error/);
+  });
+  /*
 
   test("should update version and maintain history on content change", async () => {});
 
