@@ -173,7 +173,8 @@ describe("Post Model", () => {
     expect(post.history[0].version).toBe(1);
   });
 
-  /*
-  test("should reject post creation without required fields", async () => {}); 
-  */
+  test("should reject post creation without required fields", async () => {
+    const post = new Post({});
+    await expect(post.save()).rejects.toThrow();
+  });
 });
