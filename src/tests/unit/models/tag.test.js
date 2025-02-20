@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { withTestDatabase } from "../../tests_setup";
+import { withTestDatabase } from "./tests_setup";
 import User from "../../../models/user.model";
 import Tag from "../../../models/tag.model";
 
