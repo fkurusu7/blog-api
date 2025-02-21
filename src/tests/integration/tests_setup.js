@@ -12,6 +12,8 @@ const appTest = express();
 export const withTestFunction = (testFunction) => {
   let mongoServer;
   let token;
+  let userId;
+
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
@@ -44,14 +46,15 @@ export const withTestFunction = (testFunction) => {
     });
     await user.save();
 
-    token = jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET);
+    userId = user._id;
+    token = jwt.sign({ id: userId.toString() }, process.env.JWT_SECRET);
+
     // Pass token and userId to the test context
     global.__TEST_CONTEXT__ = {
       token,
       userId,
     };
   });
-};
 
-// test('should create a post successfully', async () => {
-//     const { token, userId } = global.__TEST_CONTEXT__;
+  testFunction();
+};

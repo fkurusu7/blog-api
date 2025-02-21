@@ -170,7 +170,7 @@ export const create = async (req, res, next) => {
       `${userId}, ${title}, ${description}, ${banner}, ${tags}, ${content}, ${draft}`
     );
 
-    // Get tags, look if they already exist in tag table, if exist save it, if not just... ignore it.
+    /* // Get tags, look if they already exist in tag table, if exist save it, if not just... ignore it.
     // const processedTags = tags.map((tag) => tag.toLowerCase().trim());
     // const uniqueTags = [...new Set(processedTags)];
 
@@ -190,7 +190,7 @@ export const create = async (req, res, next) => {
     // }));
     // await Tag.bulkWrite(tagOperations);
     // const tagDocs = await Tag.find({ name: { $in: uniqueTags } });
-    // const tagIds = tagDocs.map((tag) => tag._id);
+    // const tagIds = tagDocs.map((tag) => tag._id); */
     const tagIds = await processAndUpsertTags(tags, userId);
 
     const post = new Post({

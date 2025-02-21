@@ -1,0 +1,61 @@
+import express from "express";
+import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+import request from "supertest";
+
+import { withTestFunction } from "../tests_setup";
+import Tag from "../../../models/tag.model";
+import blogRouter from "../../../routes/blog.route";
+import errorHandler from "../../../utils/errorHandler";
+
+const appTest = express();
+
+appTest.use(bodyParser.json());
+appTest.use(bodyParser.urlencoded({ extended: true }));
+appTest.use(cookieParser());
+appTest.use("/api/blog", blogRouter);
+appTest.use(errorHandler);
+
+withTestFunction(() => {
+  describe("Test Blog Controller functions", () => {
+    const postData = {
+      title: "Test Post",
+      description: "This is a test post",
+      content: "<p>Test content</p>",
+      tags: ["test", "nodejs"],
+      draft: true,
+    };
+
+    test("should return status 401 if token is missing", async () => {
+      const response = await request(appTest)
+        .post("/api/blog/create")
+        .send(postData);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe("Unauthorized");
+      expect(response.body.success).toBe(false);
+      expect(response.body.statusCode).toBe(401);
+    }); // <TEST ends>
+
+    test("should create a post successfully (with tags)", async () => {
+      const { token, userId } = global.__TEST_CONTEXT__;
+
+      const response = await request(appTest)
+        .post("/api/blog/create")
+        .set("Cookie", [`user_token=${token}`])
+        .send(postData);
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.title).toBe(postData.title);
+      expect(response.body.data.description).toBe(postData.description);
+      expect(response.body.data.content).toBe(postData.content);
+      expect(response.body.data.userId).toBe(userId.toString());
+
+      // Verify if tags were created
+      const createdTags = await Tag.find({ name: { $in: postData.tags } });
+      expect(createdTags.length).toBe(2);
+    }); // <TEST ends>
+  }); // <outer DESCRIBE ends>
+});
