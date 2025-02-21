@@ -24,8 +24,12 @@ appTest.use("/api/blog", blogRouter);
 appTest.use(errorHandler);
 
 withTestFunction(() => {
-  describe("Test Blog Controller functions", () => {
-    const postURL = "/api/blog/create";
+  describe("Test Blog Controller", () => {
+    const postURL = `/api/blog`;
+    const postCreateURL = `${postURL}/create`;
+    const postUpdateURL = `${postURL}/create`;
+    const postDeleteURL = `${postURL}/create`;
+
     const postData = {
       title: "Test Post",
       description: "This is a test post",
@@ -33,55 +37,56 @@ withTestFunction(() => {
       tags: ["test", "nodejs"],
       draft: true,
     };
+    describe("Test Create a post", () => {
+      test("should return validation error for missing fields", async () => {
+        const { token } = global.__TEST_CONTEXT__;
+        const incompletePostData = {
+          title: "Test Post",
+          // Missing description
+          content: "<p>Test content</p>",
+          // missing
+          draft: true,
+        };
+        const response = await request(appTest)
+          .post(postCreateURL)
+          .set("Cookie", [`user_token=${token}`])
+          .send(incompletePostData);
 
-    test("should return validation error for missing fields", async () => {
-      const { token } = global.__TEST_CONTEXT__;
-      const incompletePostData = {
-        title: "Test Post",
-        // Missing description
-        content: "<p>Test content</p>",
-        // missing
-        draft: true,
-      };
-      const response = await request(appTest)
-        .post(postURL)
-        .set("Cookie", [`user_token=${token}`])
-        .send(incompletePostData);
+        expect(response.body.statusCode).toBe(400);
+        expect(response.body.success).toBe(false);
+      }); // <TEST ends>
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.statusCode).toBe(400);
-    }); // <TEST ends>
+      test("should return status 401 if token is missing", async () => {
+        const response = await request(appTest)
+          .post(postCreateURL)
+          .send(postData);
 
-    test("should return status 401 if token is missing", async () => {
-      const response = await request(appTest)
-        .post("/api/blog/create")
-        .send(postData);
+        expect(response.status).toBe(401);
+        expect(response.body.message).toBe("Unauthorized");
+        expect(response.body.success).toBe(false);
+        expect(response.body.statusCode).toBe(401);
+      }); // <TEST ends>
 
-      expect(response.status).toBe(401);
-      expect(response.body.message).toBe("Unauthorized");
-      expect(response.body.success).toBe(false);
-      expect(response.body.statusCode).toBe(401);
-    }); // <TEST ends>
+      test("should create a post successfully (with tags)", async () => {
+        const { token, userId } = global.__TEST_CONTEXT__;
 
-    test("should create a post successfully (with tags)", async () => {
-      const { token, userId } = global.__TEST_CONTEXT__;
+        const response = await request(appTest)
+          .post(postCreateURL)
+          .set("Cookie", [`user_token=${token}`])
+          .send(postData);
 
-      const response = await request(appTest)
-        .post("/api/blog/create")
-        .set("Cookie", [`user_token=${token}`])
-        .send(postData);
+        expect(response.status).toBe(201);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toBeDefined();
+        expect(response.body.data.title).toBe(postData.title);
+        expect(response.body.data.description).toBe(postData.description);
+        expect(response.body.data.content).toBe(postData.content);
+        expect(response.body.data.userId).toBe(userId.toString());
 
-      expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.title).toBe(postData.title);
-      expect(response.body.data.description).toBe(postData.description);
-      expect(response.body.data.content).toBe(postData.content);
-      expect(response.body.data.userId).toBe(userId.toString());
-
-      // Verify if tags were created
-      const createdTags = await Tag.find({ name: { $in: postData.tags } });
-      expect(createdTags.length).toBe(2);
-    }); // <TEST ends>
+        // Verify if tags were created
+        const createdTags = await Tag.find({ name: { $in: postData.tags } });
+        expect(createdTags.length).toBe(2);
+      }); // <TEST ends>
+    });
   }); // <outer DESCRIBE ends>
 });
