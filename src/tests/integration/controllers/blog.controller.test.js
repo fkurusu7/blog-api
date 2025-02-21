@@ -7,6 +7,7 @@ import { withTestFunction } from "../tests_setup";
 import Tag from "../../../models/tag.model";
 import blogRouter from "../../../routes/blog.route";
 import errorHandler from "../../../utils/errorHandler";
+import Post from "../../../models/post.model";
 
 // Mock logger
 jest.mock("../../../utils/logger", () => ({
@@ -27,7 +28,7 @@ withTestFunction(() => {
   describe("Test Blog Controller", () => {
     const postURL = `/api/blog`;
     const postCreateURL = `${postURL}/create`;
-    const postUpdateURL = `${postURL}/create`;
+    const postUpdateURL = `${postURL}/update`;
     const postDeleteURL = `${postURL}/create`;
 
     const postData = {
@@ -87,6 +88,45 @@ withTestFunction(() => {
         const createdTags = await Tag.find({ name: { $in: postData.tags } });
         expect(createdTags.length).toBe(2);
       }); // <TEST ends>
+    }); // <Create DESCRIBE ends>
+
+    describe("Test Update a post", () => {
+      test("should update an existing post", async () => {
+        const { token, userId } = global.__TEST_CONTEXT__;
+
+        const tagDocs = await Promise.all(
+          ["test", "tdd"].map(async (tagName) => {
+            return await Tag.create({
+              name: tagName,
+              userId,
+              // slug: generateSlug(tagName)
+            });
+          })
+        );
+        const tagIds = tagDocs.map((tag) => tag._id);
+
+        const existingPost = new Post({
+          title: "Test Post",
+          description: "This is a test post",
+          content: "<p>Test content</p>",
+          tags: tagIds,
+          draft: true,
+          userId,
+        });
+        const existingPostResponse = await existingPost.save();
+
+        const updateExistingPostData = {
+          title: "Updated ==> Test Post",
+        };
+        const response = await request(appTest)
+          .put(`${postUpdateURL}/${existingPost.slug}`)
+          .set("Cookie", [`user_token=${token}`])
+          .send(updateExistingPostData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.title).toBe(updateExistingPostData.title);
+      });
     });
   }); // <outer DESCRIBE ends>
 });

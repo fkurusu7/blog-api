@@ -278,7 +278,6 @@ export const update = async (req, res, next) => {
       ...(typeof draft !== "undefined" && { draft }),
       updatedAt: new Date(),
     };
-    console.log(updateData);
 
     const filterSlug = { slug };
     const updatedPost = await Post.findOneAndUpdate(filterSlug, updateData, {
