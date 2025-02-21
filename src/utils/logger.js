@@ -26,11 +26,11 @@ export const logger = {
   info: (msg) => console.info(chalk.blue("💭"), chalk.bold.blue(msg)),
   warn: (msg) => console.warn(chalk.yellow("⚠️"), chalk.bold.yellow(msg)),
   error: (msg, err) => {
-    console.error(chalk.red("❌"), chalk.bold.red(msg));
+    console.log(chalk.red("❌"), chalk.bold.red(msg));
     if (err?.stack) {
-      console.error(chalk.red(err.stack));
+      console.log(chalk.red(err.stack));
     } else if (err) {
-      console.error(chalk.red(err));
+      console.log(chalk.red(err));
     }
   },
   server: (port) => {

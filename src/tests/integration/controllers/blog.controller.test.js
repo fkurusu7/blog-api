@@ -8,6 +8,13 @@ import Tag from "../../../models/tag.model";
 import blogRouter from "../../../routes/blog.route";
 import errorHandler from "../../../utils/errorHandler";
 
+// Mock logger
+jest.mock("../../../utils/logger", () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+}));
+
 const appTest = express();
 
 appTest.use(bodyParser.json());
@@ -18,6 +25,7 @@ appTest.use(errorHandler);
 
 withTestFunction(() => {
   describe("Test Blog Controller functions", () => {
+    const postURL = "/api/blog/create";
     const postData = {
       title: "Test Post",
       description: "This is a test post",
@@ -25,6 +33,24 @@ withTestFunction(() => {
       tags: ["test", "nodejs"],
       draft: true,
     };
+
+    test("should return validation error for missing fields", async () => {
+      const { token } = global.__TEST_CONTEXT__;
+      const incompletePostData = {
+        title: "Test Post",
+        // Missing description
+        content: "<p>Test content</p>",
+        // missing
+        draft: true,
+      };
+      const response = await request(appTest)
+        .post(postURL)
+        .set("Cookie", [`user_token=${token}`])
+        .send(incompletePostData);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.statusCode).toBe(400);
+    }); // <TEST ends>
 
     test("should return status 401 if token is missing", async () => {
       const response = await request(appTest)
