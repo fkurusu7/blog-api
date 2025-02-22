@@ -210,6 +210,17 @@ withTestFunction(() => {
         expect(response.body).toEqual({});
         expect(Object.keys(response.body).length).toBe(0);
       });
+
+      test("should return not found message if post does not exists", async () => {
+        const { token } = global.__TEST_CONTEXT__;
+
+        const response = await request(appTest)
+          .delete(`${postDeleteURL}?slug=not-found-slug`)
+          .set("Cookie", [`user_token=${token}`]);
+
+        expect(response.status).toBe(404);
+        expect(response.body.success).toBe(false);
+      });
     });
   }); // <outer DESCRIBE ends>
 });
