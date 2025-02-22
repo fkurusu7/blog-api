@@ -127,6 +127,54 @@ withTestFunction(() => {
         expect(response.body.success).toBe(true);
         expect(response.body.data.title).toBe(updateExistingPostData.title);
       });
+
+      test("should return status 409 if title already exists", async () => {
+        const { token, userId } = global.__TEST_CONTEXT__;
+
+        const tagDocs = await Promise.all(
+          ["test", "tdd"].map(async (tagName) => {
+            return await Tag.create({
+              name: tagName,
+              userId,
+              // slug: generateSlug(tagName)
+            });
+          })
+        );
+        const tagIds = tagDocs.map((tag) => tag._id);
+
+        const existingPost = new Post({
+          title: "Test Post",
+          description: "This is a test post",
+          content: "<p>Test content</p>",
+          tags: tagIds,
+          draft: true,
+          userId,
+        });
+        await existingPost.save();
+
+        const postToBeUpdatedWithExistingTitle = new Post({
+          title: "Test Post to be updated",
+          description: "This is a test post",
+          content: "<p>Test content</p>",
+          tags: tagIds,
+          draft: true,
+          userId,
+        });
+        await postToBeUpdatedWithExistingTitle.save();
+
+        const postToBeUpdatedWithExistingTitleData = {
+          title: "Test Post",
+        };
+        const response = await request(appTest)
+          .put(`${postUpdateURL}/${postToBeUpdatedWithExistingTitle.slug}`)
+          .set("Cookie", [`user_token=${token}`])
+          .send(postToBeUpdatedWithExistingTitleData);
+
+        expect(response.status).toBe(409);
+        expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe("Post title already exists");
+        expect(response.body.statusCode).toBe(409);
+      });
     });
   }); // <outer DESCRIBE ends>
 });
