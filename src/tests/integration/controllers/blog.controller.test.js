@@ -29,7 +29,7 @@ withTestFunction(() => {
     const postURL = `/api/blog`;
     const postCreateURL = `${postURL}/create`;
     const postUpdateURL = `${postURL}/update`;
-    const postDeleteURL = `${postURL}/create`;
+    const postDeleteURL = `${postURL}/remove`;
 
     const postData = {
       title: "Test Post",
@@ -38,7 +38,7 @@ withTestFunction(() => {
       tags: ["test", "nodejs"],
       draft: true,
     };
-    describe("Test Create a post", () => {
+    describe("Test Create a Post", () => {
       test("should return validation error for missing fields", async () => {
         const { token } = global.__TEST_CONTEXT__;
         const incompletePostData = {
@@ -90,7 +90,7 @@ withTestFunction(() => {
       }); // <TEST ends>
     }); // <Create DESCRIBE ends>
 
-    describe("Test Update a post", () => {
+    describe("Test Update a Post", () => {
       test("should update an existing post", async () => {
         const { token, userId } = global.__TEST_CONTEXT__;
 
@@ -174,6 +174,41 @@ withTestFunction(() => {
         expect(response.body.success).toBe(false);
         expect(response.body.message).toBe("Post title already exists");
         expect(response.body.statusCode).toBe(409);
+      });
+    });
+
+    describe("Test Delete a Post", () => {
+      test("should delete an existing Post", async () => {
+        const { token, userId } = global.__TEST_CONTEXT__;
+
+        const tagDocs = await Promise.all(
+          ["test", "tdd"].map(async (tagName) => {
+            return await Tag.create({
+              name: tagName,
+              userId,
+              // slug: generateSlug(tagName)
+            });
+          })
+        );
+        const tagIds = tagDocs.map((tag) => tag._id);
+
+        const existingPost = new Post({
+          title: "Test Post",
+          description: "This is a test post",
+          content: "<p>Test content</p>",
+          tags: tagIds,
+          draft: true,
+          userId,
+        });
+        const existingPostResponse = await existingPost.save();
+
+        const response = await request(appTest)
+          .delete(`${postDeleteURL}?slug=${existingPostResponse.slug}`)
+          .set("Cookie", [`user_token=${token}`]);
+
+        expect(response.status).toBe(204);
+        expect(response.body).toEqual({});
+        expect(Object.keys(response.body).length).toBe(0);
       });
     });
   }); // <outer DESCRIBE ends>
