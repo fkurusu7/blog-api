@@ -9,7 +9,8 @@
     "start": "cross-env NODE_ENV=production node server.js",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
-    "test:coverage": "cross-env NODE_ENV=test jest --coverage"
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage",
+    "build": "npm prune --production"
   },
   "keywords": [
     "blog"
