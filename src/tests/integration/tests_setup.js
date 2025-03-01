@@ -27,7 +27,14 @@ export const withTestFunction = (testFunction) => {
 
   afterAll(async () => {
     await mongoose.disconnect();
+    await mongoose.connection.close();
+    console.log("Stopping MongoMemoryServer...");
     await mongoServer.stop();
+    console.log("MongoMemoryServer stopped.");
+    console.log(
+      "Mongoose connection state (should be 0):",
+      mongoose.connection.readyState
+    );
   });
 
   beforeEach(async () => {
@@ -54,6 +61,10 @@ export const withTestFunction = (testFunction) => {
       token,
       userId,
     };
+  });
+
+  afterEach(async () => {
+    jest.clearAllMocks(); // Clear Jest mocks after each test
   });
 
   testFunction();
