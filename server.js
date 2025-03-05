@@ -37,5 +37,5 @@ AppServer.use(notFound);
 // Error: Any other App error
 AppServer.use(errorHandler);
 
-const PORT = process.env.SERVER_PORT || 5174;
+const PORT = process.env.PORT || process.env.SERVER_PORT || 5174;
 AppServer.listen(PORT, () => logger.server(PORT));

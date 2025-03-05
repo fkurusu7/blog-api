@@ -28,6 +28,20 @@ jobs:
       - name: Run tests
         run: npm test
 
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        uses: renderinc/blueprint-deploy-action@stable
+        with:
+          serviceId: ${{ secrets.RENDER_SERVICE_ID }}
+          apiKey: ${{ secrets.RENDER_API_KEY }}
+
       # - name: Build application
       #   run: npm run build
 
