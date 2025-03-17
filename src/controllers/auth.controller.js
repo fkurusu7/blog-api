@@ -115,7 +115,9 @@ export const signin = async (req, res, next) => {
       .cookie(process.env.USER_COOKIE, accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        domain:
+          process.env.NODE_ENV === "production" ? "barudesu.codes" : undefined, // Parent domain
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
       .json(formatUserResponse(user));
