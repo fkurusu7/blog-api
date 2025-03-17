@@ -1,10 +1,11 @@
 import jwt from "jsonwebtoken";
 import { createError } from "../utils/errorHandler.js";
-import { info, warn } from "../utils/logger.js";
+import { info } from "../utils/logger.js";
 
 export const verifyToken = (req, res, next) => {
   const token = req.cookies?.user_token;
 
+  info(`Token: ${token}`);
   // Verify there is a token, if not error 401
   if (!token) {
     return next(createError(401, "Unauthorized"));
