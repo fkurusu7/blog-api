@@ -321,7 +321,9 @@ export const remove = async (req, res, next) => {
     }
     // check ownership
     if (postToDelete.userId.toString() !== req.user.id) {
-      return next(createError(403, "Not authorized to delete this post"));
+      return next(
+        createError(403, "You are not authorized to delete this post")
+      );
     }
 
     // Store tags to delete if they are not used by any other post
