@@ -9,7 +9,7 @@ import errorHandler, {
 } from "../utils/errorHandler.js";
 import { signinSchema, signupSchema } from "../security/validateData.js";
 import { error, info } from "../utils/logger.js";
-import { setupRequestTimeout } from "../utils/helper.js";
+import { formatResponse, setupRequestTimeout } from "../utils/helper.js";
 
 const generateUsername = async (email) => {
   const username = email.split("@")[0];
@@ -136,5 +136,15 @@ export const signout = (req, res, next) => {
   } catch (err) {
     error("Signing out error", err);
     next(err);
+  }
+};
+
+export const validateToken = (req, res, next) => {
+  try {
+    // If request made it past the verifyToken middleware,
+    // the token is valid, so we can simply return success
+    return res.status(200).json(formatResponse(true, null, "Token is valid"));
+  } catch (error) {
+    return next(error);
   }
 };

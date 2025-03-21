@@ -4,17 +4,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { upsertPostSchema } from "../security/validateData.js";
 import { createError, handleZodError } from "../utils/errorHandler.js";
-import { setupRequestTimeout } from "../utils/helper.js";
+import { formatResponse, setupRequestTimeout } from "../utils/helper.js";
 import { info } from "../utils/logger.js";
 import Post from "../models/post.model.js";
 import { generateSlug } from "../utils/slugify.js";
 import Tag from "../models/tag.model.js";
-
-const formatResponse = (success, data, message) => ({
-  success,
-  data,
-  message,
-});
 
 // Process tags and return tag IDs after upserting them in the database
 const processAndUpsertTags = async (tags, userId) => {
@@ -170,27 +164,7 @@ export const create = async (req, res, next) => {
       `${userId}, ${title}, ${description}, ${banner}, ${tags}, ${content}, ${draft}`
     );
 
-    /* // Get tags, look if they already exist in tag table, if exist save it, if not just... ignore it.
-    // const processedTags = tags.map((tag) => tag.toLowerCase().trim());
-    // const uniqueTags = [...new Set(processedTags)];
-
-    // // Save tags in bulk
-    // const tagOperations = uniqueTags.map((tagName) => ({
-    //   updateOne: {
-    //     filter: {
-    //       name: tagName,
-    //     },
-    //     update: {
-    //       name: tagName,
-    //       userId,
-    //       slug: generateSlug(tagName),
-    //     },
-    //     upsert: true,
-    //   },
-    // }));
-    // await Tag.bulkWrite(tagOperations);
-    // const tagDocs = await Tag.find({ name: { $in: uniqueTags } });
-    // const tagIds = tagDocs.map((tag) => tag._id); */
+    // Get tags, look if they already exist in tag table, if exist save it, if not just... ignore it.
     const tagIds = await processAndUpsertTags(tags, userId);
 
     const post = new Post({
