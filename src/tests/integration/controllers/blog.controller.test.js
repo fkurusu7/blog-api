@@ -63,7 +63,7 @@ withTestFunction(() => {
           .send(postData);
 
         expect(response.status).toBe(401);
-        expect(response.body.message).toBe("Unauthorized");
+        expect(response.body.message).toBe("Access denied. Not authorized.");
         expect(response.body.success).toBe(false);
         expect(response.body.statusCode).toBe(401);
       }); // <TEST ends>
