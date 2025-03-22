@@ -104,7 +104,9 @@ export const signin = async (req, res, next) => {
     }
 
     // generate access token
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "3m",
+    });
 
     // Clear timeout since request completed successfully
     res.setTimeout(0);
@@ -119,7 +121,7 @@ export const signin = async (req, res, next) => {
         domain:
           process.env.NODE_ENV === "production" ? "barudesu.codes" : undefined, // Parent domain
         // maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 3 min
+        maxAge: 3 * 60 * 1000, // 3 min
       })
       .json(formatUserResponse(user));
   } catch (error) {
