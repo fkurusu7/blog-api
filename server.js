@@ -5,7 +5,7 @@ dotenv.config();
 import express from "express";
 import cookieParser from "cookie-parser";
 
-import configSecurity from "./src/security/index.js";
+import configSecurity from "./src/security/configSecurityCors.js";
 import errorHandler, { notFound } from "./src/utils/errorHandler.js";
 import { logger } from "./src/utils/logger.js";
 import routes from "./src/routes/index.route.js";
@@ -16,14 +16,18 @@ connectDB();
 
 const AppServer = express();
 
-// helmet, rate limit and cors middlewares
+// Security Middleware (CORS, Helmet, Rate Limiting)
 configSecurity(AppServer);
+
+// Core Middleware
 AppServer.use(express.json());
 AppServer.use(cookieParser());
-// Response capture logger middleware
+
+// Logger Middleware - Response capture
 AppServer.use(logger.responseCapture);
-// Request capture logger middleware
+// Logger Middleware - Request capture
 AppServer.use(logger.requestLogger);
+
 // Handle favicon.ico requests
 AppServer.get("/favicon.ico", (req, res) => res.status(204).end());
 
