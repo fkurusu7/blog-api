@@ -5,7 +5,7 @@ dotenv.config();
 import express from "express";
 import cookieParser from "cookie-parser";
 
-import configSecurity from "./src/security/configSecurityCors.js";
+import configSecurity from "./src/middleware/configSecurityCors.js";
 import errorHandler, { notFound } from "./src/utils/errorHandler.js";
 import { logger } from "./src/utils/logger.js";
 import routes from "./src/routes/index.route.js";
