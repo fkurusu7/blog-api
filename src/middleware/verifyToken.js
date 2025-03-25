@@ -12,15 +12,6 @@ export const verifyToken = (req, res, next) => {
       return next(createError(401, "Access denied. Not authorized."));
     }
 
-    /* jwt.verify(token, process.env.JWT_SECRET, (error, decoded) => {
-      if (error) {
-        return next(createError(401, "Unauthorized"));
-      }
-
-      // IF valid, add user from token to the request
-      req.user = decoded;
-      next();
-    }); */
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
 
