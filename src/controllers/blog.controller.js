@@ -78,6 +78,13 @@ export const getPosts = async (req, res, next) => {
       }
     }
 
+    // Sanitize search term:
+    // Prevents potential regex injection attacks
+    // Removes special characters that might cause unexpected search results
+    const sanitizedSearchTerm = req.query.searchTerm
+      ? req.query.searchTerm.trim().replace(/[^a-zA-Z0-9 ]/g, "")
+      : null;
+
     // Generate Post(s) Find Query
     const posts = await Post.find({
       // by postId
@@ -89,17 +96,17 @@ export const getPosts = async (req, res, next) => {
       // by Tag
       ...(tagId && { tags: tagId }),
       // by search term
-      ...(req.query.searchTerm && {
+      ...(sanitizedSearchTerm && {
         $or: [
-          { title: { $regex: `.*${req.query.searchTerm}.*`, $options: "i" } },
+          { title: { $regex: `.*${sanitizedSearchTerm}.*`, $options: "i" } },
           {
             description: {
-              $regex: `.*${req.query.searchTerm}.*`,
+              $regex: `.*${sanitizedSearchTerm}.*`,
               $options: "i",
             },
           },
           {
-            content: { $regex: `.*${req.query.searchTerm}.*`, $options: "i" },
+            content: { $regex: `.*${sanitizedSearchTerm}.*`, $options: "i" },
           },
         ],
       }),
