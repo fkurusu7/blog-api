@@ -63,10 +63,6 @@ const processAndUpsertTags = async (tags, userId) => {
  */
 export const getPosts = async (req, res, next) => {
   try {
-    // for (const property in req.query) {
-    //   console.log(`${property}: ${req.query[property]}`);
-    // }
-
     // Query Modifiers:
     const startIndex = parseInt(req.query.startIndex) || 0;
     const limit = parseInt(req.query.limit) || 10;
@@ -84,7 +80,6 @@ export const getPosts = async (req, res, next) => {
 
     // Generate Post(s) Find Query
     const posts = await Post.find({
-      // draft: false, TODO: remove once the UI create/show posts
       // by postId
       ...(req.query.postId && { _id: req.query.postId }),
       // by userId
@@ -122,10 +117,6 @@ export const getPosts = async (req, res, next) => {
       )
       .skip(latest ? 0 : startIndex) // if latest, don't skip
       .limit(limit);
-
-    // posts.forEach((post) => {
-    //   info(`==> POSTS: ${JSON.stringify(post)}`);
-    // });
 
     // Return response 200
     return res
