@@ -5,12 +5,19 @@ import { info } from "../utils/logger.js";
 export const getSignedInUser = async (req, res, next) => {
   try {
     const id = req.user.id;
-    info(id);
     const user = await User.findById(id);
-    info(user);
-    return res
-      .status(200)
-      .json(formatResponse(true, user.personal_info.fullname, "user correct"));
+    return res.status(200).json(
+      formatResponse(
+        true,
+        {
+          fullname: user.personal_info.fullname,
+          email: user.personal_info.email,
+          profileImg: user.personal_info.profile_img,
+          posts: user.account_info.total_posts,
+        },
+        "success"
+      )
+    );
   } catch (error) {
     next(error);
   }
