@@ -31,3 +31,30 @@ export const upsertPostSchema = z.object({
   content: z.string().min(1, "Content is required"),
   draft: z.boolean().default(true),
 });
+
+export const updateSignedInUserSchema = z.object({
+  fullname: z
+    .string()
+    .regex(/^[a-zA-Z\s]*$/, "Fullname can only contain letters and spaces")
+    .min(3, "Fullname must be at least 3 characters")
+    .max(30, "Fullname cannot exceed 30 characters")
+    .optional(),
+
+  email: z.string().email("Invalid email format").toLowerCase().optional(),
+
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+    )
+    .optional(),
+
+  profile_img: z
+    .string()
+    .regex(
+      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
+    )
+    .optional(),
+});

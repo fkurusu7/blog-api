@@ -241,7 +241,7 @@ export const update = async (req, res, next) => {
     }
     // Update post
     // Build update object with only the provided fields
-    const updateData = {
+    const updatedData = {
       ...(title && { title }),
       ...(description && { description }),
       ...(banner && { banner }),
@@ -252,7 +252,7 @@ export const update = async (req, res, next) => {
     };
 
     const filterSlug = { slug };
-    const updatedPost = await Post.findOneAndUpdate(filterSlug, updateData, {
+    const updatedPost = await Post.findOneAndUpdate(filterSlug, updatedData, {
       new: true,
     });
 
