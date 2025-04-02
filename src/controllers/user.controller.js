@@ -2,7 +2,7 @@ import { z } from "zod";
 import User from "../models/user.model.js";
 import { updateSignedInUserSchema } from "../security/validateData.js";
 import { formatResponse, setupRequestTimeout } from "../utils/helper.js";
-import { info } from "../utils/logger.js";
+import { info, logger, warn } from "../utils/logger.js";
 import { handleZodError } from "../utils/errorHandler.js";
 
 export const getSignedInUser = async (req, res, next) => {
@@ -26,6 +26,10 @@ export const getSignedInUser = async (req, res, next) => {
   }
 };
 
+const userUpdatedinfo = (user) => {
+  const { fullname, email, profile_img } = user.personal_info || {};
+  return { fullname, email, profile_img };
+};
 export const updateSignedInUser = async (req, res, next) => {
   try {
     const start = performance.now();
@@ -51,15 +55,12 @@ export const updateSignedInUser = async (req, res, next) => {
       throw new Error("No User found");
     }
 
-    // const userUpdated = user.filter();
-
     // clear monitoring
     const duration = performance.now() - start;
     info(
       `Post update performance ${JSON.stringify({
         duration,
         userId: id,
-        fullname,
       })}`
     );
     res.setTimeout(0);
@@ -67,7 +68,9 @@ export const updateSignedInUser = async (req, res, next) => {
     // return response
     return res
       .status(200)
-      .json(formatResponse(true, user, "User updated successfully"));
+      .json(
+        formatResponse(true, userUpdatedinfo(user), "User updated successfully")
+      );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return handleZodError(error, next);
