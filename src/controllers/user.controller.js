@@ -1,7 +1,9 @@
+import { z } from "zod";
 import User from "../models/user.model.js";
 import { updateSignedInUserSchema } from "../security/validateData.js";
 import { formatResponse, setupRequestTimeout } from "../utils/helper.js";
 import { info } from "../utils/logger.js";
+import { handleZodError } from "../utils/errorHandler.js";
 
 export const getSignedInUser = async (req, res, next) => {
   try {
@@ -29,24 +31,27 @@ export const updateSignedInUser = async (req, res, next) => {
     const start = performance.now();
     setupRequestTimeout(null, res, next);
 
-    const { fullname, email, password, profile_img } =
-      updateSignedInUserSchema.partial.parse(req.body);
+    const { fullname, email, password, profile_img } = updateSignedInUserSchema
+      .partial()
+      .parse(req.body);
     const id = req.user.id;
 
     // build update object with only provided fields
     const updatedData = {
-      ...(fullname && { fullname }),
-      ...(email && { email }),
-      ...(password && { password }),
-      ...(profile_img && { profile_img }),
+      ...(fullname && { "personal_info.fullname": fullname }),
+      ...(email && { "personal_info.email": email }),
+      ...(password && { "personal_info.password": password }),
+      ...(profile_img && { "personal_info.profile_img": profile_img }),
     };
+    info(JSON.stringify(updatedData));
     const user = await User.findByIdAndUpdate(id, updatedData, { new: true });
+    info(user);
 
     if (!user) {
       throw new Error("No User found");
     }
 
-    const userUpdated = user.filter();
+    // const userUpdated = user.filter();
 
     // clear monitoring
     const duration = performance.now() - start;
@@ -63,5 +68,11 @@ export const updateSignedInUser = async (req, res, next) => {
     return res
       .status(200)
       .json(formatResponse(true, user, "User updated successfully"));
-  } catch (error) {}
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return handleZodError(error, next);
+    } else {
+      next(error);
+    }
+  }
 };
