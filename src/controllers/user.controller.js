@@ -28,14 +28,15 @@ export const getSignedInUser = async (req, res, next) => {
 
 const userUpdatedinfo = (user) => {
   const { fullname, email, profile_img } = user.personal_info || {};
-  return { fullname, email, profile_img };
+  return { fullname, email, profileImg: profile_img };
 };
+
 export const updateSignedInUser = async (req, res, next) => {
   try {
     const start = performance.now();
     setupRequestTimeout(null, res, next);
 
-    const { fullname, email, password, profile_img } = updateSignedInUserSchema
+    const { fullname, email, password, profileImg } = updateSignedInUserSchema
       .partial()
       .parse(req.body);
     const id = req.user.id;
@@ -45,7 +46,7 @@ export const updateSignedInUser = async (req, res, next) => {
       ...(fullname && { "personal_info.fullname": fullname }),
       ...(email && { "personal_info.email": email }),
       ...(password && { "personal_info.password": password }),
-      ...(profile_img && { "personal_info.profile_img": profile_img }),
+      ...(profileImg && { "personal_info.profile_img": profileImg }),
     };
     info(JSON.stringify(updatedData));
     const user = await User.findByIdAndUpdate(id, updatedData, { new: true });
